@@ -137,6 +137,31 @@ test("announcement, context, concurrency and global pause enforced", async () =>
   await assert.rejects(() => core.delegate(args), /关闭/);
   core.saveRules({ enabled: true, maxParallel: 3 });
 });
+test("independent tasks run as one parallel batch", async () => {
+  delay = true;
+  const started = Date.now();
+  const result = await core.delegateBatch({
+    announced: true,
+    tasks: [
+      { modelId: ids.low, task: "并行甲", requestId: "parallel-a" },
+      { modelId: ids.strong, task: "并行乙", requestId: "parallel-b" },
+    ],
+  });
+  const elapsed = Date.now() - started;
+  delay = false;
+  assert.equal(result.mode, "parallel");
+  assert.equal(result.results.length, 2);
+  assert(result.results.every((x) => x.status === "done"));
+  assert(elapsed < 1000, `并行调用耗时异常：${elapsed}ms`);
+  await assert.rejects(
+    () =>
+      core.delegateBatch({
+        announced: true,
+        tasks: [{ modelId: ids.low, task: "不足两个" }],
+      }),
+    /2 至 6/,
+  );
+});
 test("failure is recorded without leaking response body", async () => {
   fail = true;
   const r = await core.delegate({
@@ -161,7 +186,7 @@ test("Anthropic protocol and disabled model guard", async () => {
     /停用/,
   );
 });
-test("MCP has only catalog and arbitrary delegation tools", async () => {
+test("MCP exposes catalog, single delegation and parallel delegation", async () => {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [path.resolve("mcp.mjs")],
@@ -174,6 +199,7 @@ test("MCP has only catalog and arbitrary delegation tools", async () => {
     assert.deepEqual(list.tools.map((t) => t.name).sort(), [
       "model_team_catalog",
       "model_team_delegate",
+      "model_team_delegate_batch",
     ]);
     const cat = JSON.parse(
       (await client.callTool({ name: "model_team_catalog", arguments: {} }))
@@ -190,6 +216,17 @@ test("MCP has only catalog and arbitrary delegation tools", async () => {
       arguments: { modelId: ids.low, task: "自由委派", announced: true },
     });
     assert.equal(JSON.parse(good.content[0].text).status, "done");
+    const batch = await client.callTool({
+      name: "model_team_delegate_batch",
+      arguments: {
+        announced: true,
+        tasks: [
+          { modelId: ids.low, task: "甲" },
+          { modelId: ids.strong, task: "乙" },
+        ],
+      },
+    });
+    assert.equal(JSON.parse(batch.content[0].text).mode, "parallel");
   } finally {
     await client.close();
   }

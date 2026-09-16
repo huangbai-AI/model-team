@@ -1,9 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { catalog, delegate } from "./core.mjs";
+import { catalog, delegate, delegateBatch } from "./core.mjs";
 const server = new McpServer(
-  { name: "model-team", version: "2.0.0" },
+  { name: "model-team", version: "2.2.0" },
   {
     instructions:
       "当前 GPT 是总指挥，自行决定是否、何时、向谁委派，无固定流程。委派前一句「任务 → 模型」，仅传必要上下文。",
@@ -43,5 +43,28 @@ server.registerTool(
     },
   },
   wrap(delegate),
+);
+server.registerTool(
+  "model_team_delegate_batch",
+  {
+    description:
+      "一次并行委派 2 至 6 个互不依赖的子任务。开始前需向用户简述全部“任务 → 模型”；结果仍由总指挥整合验证。",
+    inputSchema: {
+      announced: z.literal(true),
+      tasks: z
+        .array(
+          z.object({
+            modelId: z.string(),
+            task: z.string().min(1).max(20000),
+            context: z.string().max(80000).default(""),
+            reason: z.string().max(240).default(""),
+            requestId: z.string().max(100).optional(),
+          }),
+        )
+        .min(2)
+        .max(6),
+    },
+  },
+  wrap(delegateBatch),
 );
 await server.connect(new StdioServerTransport());

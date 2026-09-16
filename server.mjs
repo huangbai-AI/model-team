@@ -27,12 +27,12 @@ const entry = path.join(ROOT, "mcp.mjs");
 const skillDir = path.join(codexHome, "skills", "model-team");
 const skill = `---
 name: model-team
-description: 使用分工台的长期模型配置协作开发。
+description: 使用合流的长期模型配置协作开发。
 ---
-当前 GPT 是总指挥，自行决定是否、何时委派，可自己完成，无固定步骤。需要协作时读取 model_team_catalog，先简述「任务 → 模型」，再调用 model_team_delegate（announced=true）；独立任务可并行。只传必要上下文，自己应用并验证结果；失败后自行决定后续并说明。MODEL_TEAM_WORKER=1 时禁止再次委派。用户要求优先。
+当前 GPT 为总指挥。开发任务开始时读取一次 model_team_catalog，同一任务不反复读取。简述自行完成的原因，或列出全部「任务 → 模型」。单项调用 model_team_delegate；两个以上互不依赖的任务优先调用 model_team_delegate_batch 并行处理。无固定流程，不为凑记录调用；只传必要上下文，自己整合并验证结果。MODEL_TEAM_WORKER=1 时禁止读取或再次委派。用户要求优先。
 `;
 const globalRules =
-  "\n<!-- model-team:start -->\n开发由当前 GPT 自主判断是否委派，无固定步骤；需要时读取 model_team_catalog，先简述「任务 → 模型」再调用 model_team_delegate。只传必要上下文，自己验证结果。MODEL_TEAM_WORKER=1 时不再委派。用户要求优先。\n<!-- model-team:end -->\n";
+  "\n<!-- model-team:start -->\n开发任务开始时读取一次 model_team_catalog，再自主判断分工。简述自行完成的原因或列出“任务 → 模型”。单项使用 model_team_delegate；两个以上互不依赖的子任务优先使用 model_team_delegate_batch 并行处理。无固定步骤，不为凑记录调用；只传必要上下文并验证结果。MODEL_TEAM_WORKER=1 时不读取或委派。用户要求优先。\n<!-- model-team:end -->\n";
 function integration() {
   let text = "";
   try {
@@ -189,7 +189,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.listen(port, "127.0.0.1", () =>
-  console.log(`分工台已启动：http://127.0.0.1:${port}`),
+  console.log(`合流已启动：http://127.0.0.1:${port}`),
 );
 server.on("error", (e) => {
   console.error(

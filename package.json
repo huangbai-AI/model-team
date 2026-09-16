@@ -1,7 +1,7 @@
 {
   "name": "model-team",
-  "version": "2.1.0",
-  "description": "分工台：由 Codex 主模型自主分工的本地多模型协作控制台",
+  "version": "2.2.0",
+  "description": "合流：由 Codex 主模型自主分工、并行协作的本地多模型控制台",
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",

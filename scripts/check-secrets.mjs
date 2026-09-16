@@ -5,7 +5,7 @@ const files = execFileSync("git", ["ls-files", "-z"])
   .split("\0")
   .filter(Boolean);
 const blocked =
-  /(^|\/)(\.data|node_modules|work)(\/|$)|(^|\/)(\.env(?:\..*)?|vault\.key|auth\.json|config\.toml)$|\.pem$/;
+  /(^|\/)(\.data|node_modules|work)(\/|$)|(^|\/)(\.env(?!\.example$)(?:\..*)?|vault\.key|auth\.json|config\.toml)$|\.pem$/;
 const patterns = [
   /\bsk-[A-Za-z0-9_.-]{20,}/,
   /\bgh[pousr]_[A-Za-z0-9]{20,}/,

@@ -109,7 +109,7 @@ export function publicConfig() {
 export function saveModel(input) {
   const c = config(),
     old = c.models.find((m) => m.id === input.id),
-    kind = ["api", "codex", "codex-provider"].includes(input.kind)
+    kind = ["api", "gateway", "codex", "codex-provider"].includes(input.kind)
       ? input.kind
       : old?.kind || "api";
   let baseUrl = "";
@@ -416,4 +416,31 @@ export async function delegate({
     status: plan.status,
     ...(step.result ? { result: step.result } : { error: step.error }),
   };
+}
+
+export async function delegateBatch({ tasks, announced }) {
+  if (announced !== true) throw Error("请先向用户简述并行任务与模型");
+  if (!Array.isArray(tasks) || tasks.length < 2 || tasks.length > 6)
+    throw Error("并行分工需要 2 至 6 个独立任务");
+  const c = config();
+  if (!c.rules.enabled) throw Error("自动委派已关闭，由总指挥自行完成");
+  if (inflight.size + tasks.length > c.rules.maxParallel)
+    throw Error(`并行任务超过当前上限 ${c.rules.maxParallel}`);
+  const seen = new Set();
+  for (const item of tasks) {
+    if (!c.models.some((m) => m.id === item.modelId && m.enabled))
+      throw Error("并行任务包含不存在或已停用的模型");
+    if (!clean(item.task, 20000)) throw Error("并行任务不能为空");
+    if ((item.context || "").length > c.rules.contextChars)
+      throw Error(`上下文超过 ${c.rules.contextChars} 字符`);
+    if (item.requestId) {
+      if (seen.has(item.requestId)) throw Error("并行任务的请求标识不能重复");
+      seen.add(item.requestId);
+    }
+  }
+  const startedAt = new Date().toISOString();
+  const results = await Promise.all(
+    tasks.map((item) => delegate({ ...item, announced: true })),
+  );
+  return { mode: "parallel", startedAt, count: results.length, results };
 }

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>分工台 · 多模型协作</title>
+    <title>合流 · 多模型协作</title>
     <link rel="icon" href="/logo.png" type="image/png" />
     <link rel="stylesheet" href="/style.css" />
     <script type="module" src="/app.js"></script>
@@ -12,8 +12,8 @@
   <body>
     <aside class="sidebar">
       <a class="brand" href="#dashboard"
-        ><img class="brand-logo" src="/logo.png" alt="分工台标志" /><span
-          >分工台<small>效果优先 · 按需协作</small></span
+        ><img class="brand-logo" src="/logo.png" alt="合流标志" /><span
+          >合流<small>让合适的模型，并行做好每一件事</small></span
         ></a
       >
       <div class="nav-label">工作空间</div>
@@ -41,7 +41,7 @@
         <button class="connect-nav" data-page="connect">
           <span data-icon="plug"></span>连接 Codex<span>↗</span>
         </button>
-        <div class="sidebar-footer">多模型协作 <span>v2.0</span></div>
+        <div class="sidebar-footer">多模型协作 <span>v2.2</span></div>
       </div>
     </aside>
     <div class="app-shell">
@@ -102,6 +102,7 @@
         <label
           >调用方式<select name="kind">
             <option value="api">外部模型接口</option>
+            <option value="gateway">团队网关令牌</option>
             <option value="codex">Codex 已有登录</option>
             <option value="codex-provider">独立 Codex 服务商</option>
           </select></label
@@ -132,19 +133,19 @@
             placeholder="填写服务商提供的准确模型名称"
             maxlength="120" /></label
         ><label
-          >API key
+          >API key / 团队令牌
           <div class="secret-field">
             <input
               name="apiKey"
               type="password"
               autocomplete="new-password"
-              placeholder="仅在本机加密保存；本地模型可留空"
+              placeholder="仅在本机加密保存；团队成员填写独立令牌"
             /><button type="button" id="toggle-key" aria-label="显示或隐藏密钥">
               显示
             </button>
           </div>
           <small id="key-hint"
-            >保存后不回显。编辑时留空可保留原密钥。</small
+            >保存后不回显。团队共享请使用成员令牌，不要分发上游原始 key。</small
           ></label
         >
         <details class="price-details">

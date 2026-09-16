@@ -37,7 +37,7 @@ if (!(await ready())) {
     process.exit(1);
   }
 }
-console.log("分工台已启动：" + url);
+console.log("合流已启动：" + url);
 const opener =
   process.platform === "darwin"
     ? "open"

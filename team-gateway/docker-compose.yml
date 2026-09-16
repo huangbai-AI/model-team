@@ -1,0 +1,31 @@
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-litellm}
+      POSTGRES_USER: ${POSTGRES_USER:-litellm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请设置数据库密码}
+    volumes:
+      - gateway-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-litellm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  gateway:
+    image: ghcr.io/berriai/litellm:v1.101.0
+    restart: unless-stopped
+    env_file: .env
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    ports:
+      - "${GATEWAY_BIND:-127.0.0.1}:4000:4000"
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  gateway-db:
