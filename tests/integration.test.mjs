@@ -12,11 +12,32 @@ process.env.MODEL_TEAM_DATA = path.join(base, "data");
 const core = await import("../core.mjs");
 let received = [],
   fail = false,
-  delay = false;
+  delay = false,
+  reasoningOnce = false;
 const mock = http.createServer(async (req, res) => {
   let raw = "";
   for await (const c of req) raw += c;
   received.push({ url: req.url, headers: req.headers, body: JSON.parse(raw) });
+  if (reasoningOnce) {
+    reasoningOnce = false;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        choices: [
+          {
+            finish_reason: "length",
+            message: { content: "", reasoning_content: "内部思考" },
+          },
+        ],
+        usage: {
+          prompt_tokens: 20,
+          completion_tokens: 2048,
+          completion_tokens_details: { reasoning_tokens: 2048 },
+        },
+      }),
+    );
+    return;
+  }
   if (delay) {
     setTimeout(() => {
       if (!res.destroyed) {
@@ -116,6 +137,21 @@ test("free delegation: any model, no stages, minimal context and idempotency", a
     announced: true,
   });
   assert.equal(other.status, "done");
+});
+test("reasoning-only truncated response retries with a larger limit", async () => {
+  reasoningOnce = true;
+  const before = received.length;
+  const result = await core.delegate({
+    modelId: ids.low,
+    task: "需要完成正文",
+    announced: true,
+    requestId: "reasoning-retry",
+  });
+  assert.equal(result.status, "done");
+  assert.equal(received.length, before + 2);
+  assert.equal(received.at(-2).body.max_tokens, 2048);
+  assert.equal(received.at(-1).body.max_tokens, 8192);
+  assert.equal(core.getPlan(result.id).steps[0].usage.outputTokens, 2058);
 });
 test("announcement, context, concurrency and global pause enforced", async () => {
   const args = { modelId: ids.low, task: "x", announced: true };

@@ -23,6 +23,9 @@ export const protocolAdapters = new Map([
           text: data.choices?.[0]?.message?.content,
           inputTokens: data.usage?.prompt_tokens ?? null,
           outputTokens: data.usage?.completion_tokens ?? null,
+          finishReason: data.choices?.[0]?.finish_reason ?? null,
+          reasoningTokens:
+            data.usage?.completion_tokens_details?.reasoning_tokens ?? null,
         };
       },
     },
