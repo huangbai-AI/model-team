@@ -1,0 +1,6 @@
+.data/
+.env*
+work/
+*.log
+*.key
+*backup*

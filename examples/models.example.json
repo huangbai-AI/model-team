@@ -1,0 +1,8 @@
+{
+  "note": "仅作填写参考，不是可直接导入的私有配置。请在网页输入自己的密钥。",
+  "models": [
+    {"name": "兼容接口模型", "kind": "api", "protocol": "openai", "baseUrl": "https://api.example.com/v1", "model": "your-model-id", "hint": "适合的任务，由你按实际效果填写"},
+    {"name": "已有 Codex 登录", "kind": "codex", "model": "your-codex-model-id", "hint": "独立代码建议"},
+    {"name": "独立 Codex 服务商", "kind": "codex-provider", "baseUrl": "https://api.example.com/v1", "model": "your-responses-model-id", "hint": "使用自己的服务商"}
+  ]
+}

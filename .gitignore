@@ -1,0 +1,18 @@
+# Never publish credentials, local configuration, records, or worker files.
+.data/
+**/.data/
+.env
+.env.*
+!.env.example
+node_modules/
+work/
+coverage/
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
+*backup*
+auth.json
+config.toml
+.DS_Store
